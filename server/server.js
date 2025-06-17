@@ -33,10 +33,8 @@ console.log('Connecting to MongoDB...', mongoURI ? 'Connection string found' : '
 // MongoDB connection with retry logic
 const connectDB = async () => {
   try {
-    await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(mongoURI);
+
     console.log('✅ MongoDB connected successfully');
     
     // List all collections in the database for debugging

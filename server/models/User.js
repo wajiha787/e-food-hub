@@ -29,4 +29,4 @@ const userSchema = new mongoose.Schema({
 });
 
 // Remove the third parameter - let MongoDB use default collection name
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', userSchema, 'e-food-hub-database');

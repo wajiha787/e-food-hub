@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Main from './components/Main';
 import Products from './components/Products';
 import PastOrders from './components/PastOrders';
@@ -9,9 +9,9 @@ import './App.css';
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // track login status
 
   const addToCart = (item) => {
-    // Check if item is already in cart
     const existingItem = cartItems.find((i) => i.id === item.id);
     if (existingItem) {
       const updatedCart = cartItems.map((i) =>
@@ -28,9 +28,7 @@ function App() {
     setCartItems(updatedCart);
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-  };
+  const clearCart = () => setCartItems([]);
 
   const checkout = () => {
     const order = {
@@ -48,35 +46,62 @@ function App() {
     alert('Order placed successfully!');
   };
 
+  // Protected route wrapper
+  const PrivateRoute = ({ children }) => {
+    return isAuthenticated ? children : <Navigate to="/login" />;
+  };
+
   return (
     <Router>
       <div className="App">
-        <nav style={{ padding: '10px', backgroundColor: '#f8f9fa', marginBottom: '20px' }}>
-          <Link to="/" style={{ margin: '0 10px', textDecoration: 'none' }}>Home</Link>
-          <Link to="/products" style={{ margin: '0 10px', textDecoration: 'none' }}>
-            Cart ({cartItems.length})
-          </Link>
-          <Link to="/past-orders" style={{ margin: '0 10px', textDecoration: 'none' }}>Past Orders</Link>
-          <Link to="/signup" style={{ margin: '0 10px', textDecoration: 'none' }}>Sign Up</Link>
-          <Link to="/login" style={{ margin: '0 10px', textDecoration: 'none' }}>Login</Link>
-        </nav>
+        {isAuthenticated && (
+          <nav style={{ padding: '10px', backgroundColor: '#f8f9fa', marginBottom: '20px' }}>
+            <Link to="/" style={{ margin: '0 10px', textDecoration: 'none' }}>Home</Link>
+            <Link to="/products" style={{ margin: '0 10px', textDecoration: 'none' }}>
+              Cart ({cartItems.length})
+            </Link>
+            <Link to="/past-orders" style={{ margin: '0 10px', textDecoration: 'none' }}>Past Orders</Link>
+            <button onClick={() => setIsAuthenticated(false)} style={{ margin: '0 10px' }}>Logout</button>
+          </nav>
+        )}
 
         <Routes>
-          <Route path="/" element={<Main addToCart={addToCart} />} />
-          <Route 
-            path="/products" 
-            element={
-              <Products 
-                cartItems={cartItems}
-                removeFromCart={removeFromCart}
-                clearCart={clearCart}
-                checkout={checkout}
-              />
-            } 
-          />
-          <Route path="/past-orders" element={<PastOrders />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
+          <Route
+            path="/login"
+            element={<Login onLogin={() => setIsAuthenticated(true)} />}
+          />
+
+          {/* Protected Routes */}
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Main addToCart={addToCart} />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/products"
+            element={
+              <PrivateRoute>
+                <Products
+                  cartItems={cartItems}
+                  removeFromCart={removeFromCart}
+                  clearCart={clearCart}
+                  checkout={checkout}
+                />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/past-orders"
+            element={
+              <PrivateRoute>
+                <PastOrders />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </div>
     </Router>
